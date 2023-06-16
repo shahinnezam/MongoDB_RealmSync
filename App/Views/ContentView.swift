@@ -10,16 +10,19 @@ struct ContentView: View {
             // Setup configuraton so user initially subscribes to their own tasks
             let config = user.flexibleSyncConfiguration(initialSubscriptions: { subs in
                 subs.remove(named: Constants.allItems)
-                if let _ = subs.first(named: Constants.myItems) {
+                if let foundSubscription = subs.first(named: Constants.myItems) {
+                    foundSubscription.updateQuery(toType: Item.self, where: {
+                        $0.owner_id == user.id && $0.priority <= PriorityLevel.high
+                    })
                     // Existing subscription found - do nothing
                     return
                 } else {
                     // No subscription - create it
                     subs.append(QuerySubscription<Item>(name: Constants.myItems) {
-                        $0.owner_id == user.id
+                        $0.owner_id == user.id && $0.priority <= PriorityLevel.high
                     })
                 }
-            })
+            }, rerunOnOpen: true)
             OpenRealmView(user: user)
                 // Store configuration in the environment to be opened in next view
                 .environment(\.realmConfiguration, config)
