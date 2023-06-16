@@ -15,6 +15,7 @@ struct CreateItemView: View {
     @Binding var isInCreateItemView: Bool
     @State var user: User
     @State var itemSummary = ""
+    @State var priority = PriorityLevel.medium
 
     var body: some View {
         Form {
@@ -25,6 +26,12 @@ struct CreateItemView: View {
                 // synced property when the user presses `Save`
                 TextField("New item", text: $itemSummary)
             }
+            Section(header: Text("Priority")) {
+                // Adds a picker to choose what priority to set new item to
+                Picker(selection: $priority, label: Text("Set Priority")) {
+                    ForEach(PriorityLevel.allCases, id: \.self, content: {priority in Text(priority.description)})
+                }
+            }
             Section {
                 Button(action: {
                     newItem.owner_id = user.id
@@ -32,6 +39,8 @@ struct CreateItemView: View {
                     // performance issues, we only assign to the `newItem.summary`
                     // once when the user presses `Save`.
                     newItem.summary = itemSummary
+                    // Sets priority when new item is added
+                    newItem.priority = priority
                     // Appending the new Item object to the ``items``
                     // ObservedResults collection adds it to the
                     // realm in an implicit write.
